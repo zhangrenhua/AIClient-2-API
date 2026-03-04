@@ -53,6 +53,8 @@ export class ClaudeConverter extends BaseConverter {
                 return this.toOpenAIResponsesRequest(data);
             case MODEL_PROTOCOL_PREFIX.CODEX:
                 return this.toCodexRequest(data);
+            case MODEL_PROTOCOL_PREFIX.GROK:
+                return this.toGrokRequest(data);
             default:
                 throw new Error(`Unsupported target protocol: ${targetProtocol}`);
         }
@@ -2095,6 +2097,18 @@ export class ClaudeConverter extends BaseConverter {
     }
 
     /**
+     * Claude请求 -> Grok请求
+     */
+    toGrokRequest(claudeRequest) {
+        // 先转换为 OpenAI 格式，因为 Grok 兼容 OpenAI 格式
+        const openaiRequest = this.toOpenAIRequest(claudeRequest);
+        return {
+            ...openaiRequest,
+            _isConverted: true
+        };
+    }
+
+    /**
      * Claude响应 -> Codex响应 (实际上是 Codex 转 Claude)
      */
     toCodexResponse(codexResponse, model) {
@@ -2149,6 +2163,7 @@ export class ClaudeConverter extends BaseConverter {
                     id: codexChunk.response.id,
                     type: "message",
                     role: "assistant",
+                    content: [],
                     model: model,
                     usage: { input_tokens: 0, output_tokens: 0 }
                 }
